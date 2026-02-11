@@ -15,3 +15,7 @@ To install pip packages, a `venv` enviroment is needed:
 - Write to the requirements: `pip freeze > requirements.txt`
 
 The `.venv` should be included in the `.gitignore`, as it is too big for a repo.
+
+### Data
+
+Get image data on: `git@github.com:BIDS/BSDS500.git` and clone into this repository
