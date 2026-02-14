@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage[]{geometry} % Paket für die Seitenformatierung
+\usepackage[ngerman]{babel} % deutsche Sprache
+\usepackage{amsmath, amssymb, mathtools} % Mathematik
+\usepackage{parskip} % Kein Einzug, stattdessen Abstand zwischen Absätzen
+%Pfad zu Bildern
+
+%-----------------------------------------
+%           Allgemeine Einstellungen
+%-----------------------------------------
+\geometry{a4paper, total={170mm,257mm}, left=20mm, top=20mm, right=20mm, bottom=20mm}
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{Praktikum zu Computer Vision}}\\~\\
+\end{center}
+% Die richtige Datei einbinden
+\begin{center} % Kopfbereich mit Infos zur Abgabegruppe
+  \begin{tabular}{|rlp{4cm}rl|}
+    \hline
+    \textbf{Aufgabe:} & 01 &  & \textbf{1. Abgabepartner:} & Simon Schönhöffer \\
+    \textbf{Gruppe:} & 14 &  & \textbf{2. Abgabepartner:} & Tamaro Walter  \\ \hline
+  \end{tabular}
+\end{center} 
+
+\textbf{\\~\\Aufgabe 01:\\~\\}
+
+Was auffällt:
+\begin{enumerate}
+  \item nutzt man keine Bildglättung gibt es viele kreisförmige Kanten in einem Bild
+  \item Bildglättung bringt aber nicht so viel wie gedacht, selbst mit algorithmus der cv2 bibliothek sind ergebnisse eher Meh
+  \item Eigener Bildglättungsalgorithmus ist eigentlich besser als der der cv2-bibliothek
+  \item allgemein: Kantenerkennung funktioniert bei geraden objekten (ziegel, eckige häuser) besser als bei konturen (berge, bäume, runde bögen)
+\end{enumerate}

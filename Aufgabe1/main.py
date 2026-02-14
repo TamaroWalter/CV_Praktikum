@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 import glob
+import sys
+import time
+import scipy.io
+import os
 import edge_detection as ed
 '''
 Was ist die Aufgabe?
@@ -19,19 +23,81 @@ Idee der Implementation:
 Algorithmus:
 1. Schritt: Jpg zu grauwerte-Matrix umwandeln   -> check
 2. Schritt: Mit Sobel-Operator Kantenstärke ermitteln ->check
-3. Schritt: Richtung der Kanten bestimmen (wird glaub ich nicht in vorlesung behandelt)
-4. Schritt: Non-maximum Suppression anwenden um geeignete Kanten zu finden
-5. Schritt: Hysteresis-Threshold-Operation verwenden um Kanten zu identifizieren
-6. Schritt: Matrix wieder zu einer Jpg umwandeln, Konturen als schwarze Striche
+3. Schritt: Richtung der Kanten bestimmen -> check
+4. Schritt: Non-maximum Suppression anwenden um geeignete Kanten zu finden -> check
+5. Schritt: Hysteresis-Threshold-Operation verwenden um Kanten zu identifizieren -> check
+6. Schritt: Matrix wieder zu einer Jpg umwandeln, Konturen als schwarze Striche -> check
 
 Wie man dann testen könnte:
 1. Schritt: Vom gleichen bild die groundTruth-Matlab datei einlesen und die Matrix mit der eigens berechneten Matrix vergleichen
+  1.1 matlab datei einlesen -> check (es sind mehrere versionen desselben bildes vorhanden)
 '''
-path = glob.glob("/home/tamaro/Documents/master_informatik/Praktische_Informatik/ComputerVision/Praktikum/BSDS500/BSDS500/data/images/**/2018.*", recursive=True)
-#print(path)
 
-#gray_value_matrix: np.ndarray = cv2.imread(path[0], cv2.IMREAD_GRAYSCALE)
+# Start timer.
+start = time.time()
+
+# Get image number from user input:
+if len(sys.argv) < 2:
+  print("Usage: python main.py <image_number>")
+  sys.exit(1)
+
+image_number = sys.argv[1]
+
+# Get the image from BSDS500 repo and turn it into a grey value matrix
+base_path = os.path.join(os.path.dirname(__file__), "..")
+path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/images/**", f"{image_number}.*"), recursive=True)
+if len(path) == 0:
+  print(f"No image found with number {image_number}")
+  sys.exit(1)
+
+print(f"Processing image: {path[0]}")
+gray_value_matrix: np.ndarray = cv2.imread(path[0], cv2.IMREAD_GRAYSCALE)
+
+# Use gaussian filter
+filtered_matrix = ed.gaussian_filter(gray_value_matrix)
+#filtered_matrix = cv2.GaussianBlur(gray_value_matrix, (5, 5), 1)
+
+# Compute Canny edge detection.
+strengths, directions = ed.sobel(filtered_matrix)
+max_strengths = ed.non_maximum_suppression(strengths, directions)
+edges = ed.hysteresis_threshold_operation(max_strengths)
+
+# Output
+output = np.where(edges == 1, 0, 255).astype(np.uint8)
+cv2.imwrite(f"edges_{image_number}.jpg", output)
+print(f"Saved edges_{image_number}.jpg")
+
+# End timer.
+elapsed = time.time() - start
+print(f"Processing took {elapsed:.2f} seconds")
+
+# TESTING against ground truth
+
+# Load ground truth .mat file
+gt_start = time.time()
+gt_path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/groundTruth/**", f"{image_number}.mat"), recursive=True)
+if len(gt_path) == 0:
+  print(f"No ground truth found for {image_number}")
+else:
+  mat = scipy.io.loadmat(gt_path[0])
+  # groundTruth is a 1xN array, each entry contains Boundaries and Segmentation
+  # Multiple annotators, so there are multiple ground truths
+  gt_cell = mat['groundTruth'][0]
+  
+  for i, gt in enumerate(gt_cell):
+    boundaries = gt['Boundaries'][0, 0]  # binary matrix (0 and 1)
+    gt_output = np.where(boundaries == 1, 0, 255).astype(np.uint8)
+    cv2.imwrite(f"gt_{image_number}_{i}.jpg", gt_output)
+    print(f"Saved gt_{image_number}_{i}.jpg")
+cv2.imwrite(f"original_{image_number}.jpg", cv2.imread(path[0]))
+print(f"Saved original_{image_number}_{i}.jpg")
+elapsed2 = time.time() - gt_start
+overall = time.time() - start
+print(f"Ground truth processing took {elapsed2:.2f} seconds")
+print(f"Complete time of process:{overall:.2f}")
+
 # Test from exercise 1.5
+'''
 gray_value_matrix: np.ndarray = np.array([
   [3, 1, 5, 7, 2],
   [2, 1, 6, 5, 6],
@@ -41,7 +107,6 @@ gray_value_matrix: np.ndarray = np.array([
 ])
 edges = ed.sobel(gray_value_matrix)
 print(edges)
-'''
 expected output:
 [[18 22  8]
  [24 28  6]
