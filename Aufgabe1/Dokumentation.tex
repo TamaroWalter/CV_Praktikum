@@ -33,4 +33,11 @@ Was auffällt:
   \item Bildglättung bringt aber nicht so viel wie gedacht, selbst mit algorithmus der cv2 bibliothek sind ergebnisse eher Meh
   \item Eigener Bildglättungsalgorithmus ist eigentlich besser als der der cv2-bibliothek
   \item allgemein: Kantenerkennung funktioniert bei geraden objekten (ziegel, eckige häuser) besser als bei konturen (berge, bäume, runde bögen)
+    \subitem ganz schlimm ist das uhu bild (42044), oder auch menschen (15011)
+    \subitem Positivbeispiel: 17076, 28083
+  \item welche parameter beeinflussen die edge-detection?
+    \subitem die wahl von sigma für die Bildglättung
+    \subitem die wahl der perzential für t_high und t_low bei der hysteresis_threshold_operation funktion.
+      erhöht man t_high, werden kanten irgendwann aber nicht mehr erkannt. t_high sort aber auch dafür, dass weniger "kreise" erkannt werden
+      erhöht man t_low, werden kreise eher vermieden. Es lohnt sich also t_low nahe an t_high zu setzen
 \end{enumerate}

@@ -6,6 +6,7 @@ import time
 import scipy.io
 import os
 import edge_detection as ed
+import test_edge_detection as test
 '''
 Was ist die Aufgabe?
 - Es soll eine Kantenerkennung eines Bildes mit "Canny Edge Detection" implementiert werden.
@@ -43,7 +44,7 @@ if len(sys.argv) < 2:
 
 image_number = sys.argv[1]
 
-# Get the image from BSDS500 repo and turn it into a grey value matrix
+# Get the image from BSDS500 repo and turn it into a gray value matrix
 base_path = os.path.join(os.path.dirname(__file__), "..")
 path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/images/**", f"{image_number}.*"), recursive=True)
 if len(path) == 0:
@@ -53,29 +54,18 @@ if len(path) == 0:
 print(f"Processing image: {path[0]}")
 gray_value_matrix: np.ndarray = cv2.imread(path[0], cv2.IMREAD_GRAYSCALE)
 
-# Use gaussian filter
-filtered_matrix = ed.gaussian_filter(gray_value_matrix)
-#filtered_matrix = cv2.GaussianBlur(gray_value_matrix, (5, 5), 1)
-
 # Compute Canny edge detection.
-strengths, directions = ed.sobel(filtered_matrix)
-max_strengths = ed.non_maximum_suppression(strengths, directions)
-edges = ed.hysteresis_threshold_operation(max_strengths)
+edges = ed.calculate_edges(gray_value_matrix)
 
-# Output
+# Output edge file.
 output = np.where(edges == 1, 0, 255).astype(np.uint8)
 cv2.imwrite(f"edges_{image_number}.jpg", output)
-print(f"Saved edges_{image_number}.jpg")
-
-# End timer.
-elapsed = time.time() - start
-print(f"Processing took {elapsed:.2f} seconds")
 
 # TESTING against ground truth
-
 # Load ground truth .mat file
 gt_start = time.time()
 gt_path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/groundTruth/**", f"{image_number}.mat"), recursive=True)
+ground_truth = np.zeros((0, 0), dtype=np.uint8)
 if len(gt_path) == 0:
   print(f"No ground truth found for {image_number}")
 else:
@@ -83,32 +73,16 @@ else:
   # groundTruth is a 1xN array, each entry contains Boundaries and Segmentation
   # Multiple annotators, so there are multiple ground truths
   gt_cell = mat['groundTruth'][0]
-  
+  ground_truth = gt_cell[0]['Boundaries'][0, 0]
+  '''
   for i, gt in enumerate(gt_cell):
     boundaries = gt['Boundaries'][0, 0]  # binary matrix (0 and 1)
+    ground_truth = boundaries
     gt_output = np.where(boundaries == 1, 0, 255).astype(np.uint8)
     cv2.imwrite(f"gt_{image_number}_{i}.jpg", gt_output)
-    print(f"Saved gt_{image_number}_{i}.jpg")
+  '''
 cv2.imwrite(f"original_{image_number}.jpg", cv2.imread(path[0]))
-print(f"Saved original_{image_number}_{i}.jpg")
-elapsed2 = time.time() - gt_start
-overall = time.time() - start
-print(f"Ground truth processing took {elapsed2:.2f} seconds")
-print(f"Complete time of process:{overall:.2f}")
-
-# Test from exercise 1.5
-'''
-gray_value_matrix: np.ndarray = np.array([
-  [3, 1, 5, 7, 2],
-  [2, 1, 6, 5, 6],
-  [1, 0, 7, 6, 7],
-  [0, 1, 2, 6, 5],
-  [2, 1, 0, 1, 6],
-])
-edges = ed.sobel(gray_value_matrix)
-print(edges)
-expected output:
-[[18 22  8]
- [24 28  6]
- [12 34 30]]
-'''
+print(f"Processing took {(time.time() - start):.2f} seconds")
+print("----")
+print("---")
+test.compare_results(edges, ground_truth)

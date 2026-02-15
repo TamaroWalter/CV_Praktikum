@@ -6,7 +6,18 @@ Provides functions for Canny edge detection using Sobel operators.
 :group: Praktikum Gruppe 14
 """
 import numpy as np
-import math
+
+
+"""
+Wraps all functions below in one easy to use function.
+"""
+def calculate_edges(matrix: np.ndarray) -> np.ndarray:
+  filtered_matrix = gaussian_filter(matrix)
+  strengths, directions = sobel(filtered_matrix)
+  max_strengths = non_maximum_suppression(strengths, directions)
+  return hysteresis_threshold_operation(max_strengths)
+
+
 """
 Calculates the edge strengths of an grey-value image with sobel-operator and calculates the edge direction
 """
@@ -24,26 +35,22 @@ def sobel(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
   ])
 
   rows, cols = matrix.shape
-  edge_strengths: np.ndarray = np.zeros((rows-2, cols-2), dtype=np.uint8)
-  edge_directions: np.ndarray = np.zeros((rows-2, cols-2), dtype=np.uint8)
+  # Pad to preserve dimensions
+  padded = np.pad(matrix, 1, mode='reflect')
+  edge_strengths: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
+  edge_directions: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
   
-  for y in range(1, rows-1):
-    for x in range(1, cols -1):
-      # Build a submatrix of the current neighborhood.
+  for y in range(1, rows + 1):
+    for x in range(1, cols + 1):
       neighbourhood: np.ndarray = np.array([
-        [matrix[y-1, x-1], matrix[y-1, x], matrix[y-1, x+1] ],
-        [matrix[y, x-1], matrix[y, x], matrix[y, x+1] ],
-        [matrix[y+1, x-1], matrix[y+1, x], matrix[y+1, x+1] ],
+        [padded[y-1, x-1], padded[y-1, x], padded[y-1, x+1] ],
+        [padded[y, x-1], padded[y, x], padded[y, x+1] ],
+        [padded[y+1, x-1], padded[y+1, x], padded[y+1, x+1] ],
       ])
-      # Compute hx and hy.
       hy: int = calc_correlation_value(sobel_y, neighbourhood)
       hx: int = calc_correlation_value(sobel_x, neighbourhood)
-      # Compute the edge strength, rounded to an integer.
-      edge_strengths[y-1, x-1] = min(int(np.sqrt(hx**2 + hy**2)), 255)     #-> genauer Wert
-      #edge_strengths[y-1, x-1] = abs(hx) + abs(hy)                        # -> gerundeter Wert
+      edge_strengths[y-1, x-1] = min(int(np.sqrt(hx**2 + hy**2)), 255)
 
-      # Compute the angle and the edge direction (VL04, F11).
-      # possible directions: 1=vertical, 2=diagonal(bot left -> top right), 3 = horizontal, 4=diagonal (top left -> bot right)
       angle = np.degrees(np.arctan2(hy, hx)) % 180
       if ((angle >=0 and angle< 22.5) or (angle >= 157.5 and angle <180)):
         edge_directions[y-1, x-1] = 1
@@ -84,8 +91,8 @@ Implements hysteresis threshold operation algorithm from VL4, F.25
 """
 def hysteresis_threshold_operation(strengths: np.ndarray) -> np.ndarray:
   # Define the 2 thresholds.
-  th: int = np.percentile(strengths, 90)
-  tl: int = np.percentile(strengths, 70)
+  th: int = np.percentile(strengths, 91)
+  tl: int = np.percentile(strengths, 88)
   rows, cols = strengths.shape
   # Step 1: Initialize k(r,c) = 0
   k = np.zeros((rows, cols), dtype=np.uint8)
@@ -116,15 +123,11 @@ def hysteresis_threshold_operation(strengths: np.ndarray) -> np.ndarray:
               break
 
   # Step 5: As a line was taken at the beginning (sobel function) from the original matrix, add a blank line allround the image
-  edge_image = np.zeros((rows+1,cols+1), dtype=np.uint8)
-  for y in range(1, rows):
-      for x in range(1, cols):
-        edge_image[y,x] = k[y,x]
-  return edge_image
+  return k
 
 
 """
-Extra function: implements gaussian filter
+Implements gaussian filter
 """
 def gaussian_filter(matrix: np.ndarray) -> np.ndarray:
   # Build the mask
@@ -137,12 +140,15 @@ def gaussian_filter(matrix: np.ndarray) -> np.ndarray:
       gauss[y + k, x + k] = round(g(x, y, sigma)/g(k,k,sigma))
   normfactor = 1 / np.sum(gauss)
 
+  # Pad the image to preserve dimensions
+  padded = np.pad(matrix, k, mode='reflect')
+
   # Apply mask to image matrix
   rows, cols = matrix.shape
-  result = np.zeros((rows - 2 * k, cols - 2 * k), dtype=np.uint8)
-  for y in range(k, rows - k):
-    for x in range(k, cols - k):
-      region = matrix[(y-k):(y+k+1), (x-k):(x+k+1)]
+  result = np.zeros((rows, cols), dtype=np.uint8)
+  for y in range(k, rows + k):
+    for x in range(k, cols + k):
+      region = padded[(y-k):(y+k+1), (x-k):(x+k+1)]
       result[y - k, x - k] = int(np.sum(region * gauss) * normfactor)
 
   return result
