@@ -15,8 +15,6 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
   '''
   gt_rows, gt_cols = ground_truth.shape
   e_rows, e_cols = edges.shape
-  print(f"edges shape: {edges.shape}")
-  print(f"ground truth shape: {ground_truth.shape}")
   if (gt_rows != e_rows or e_cols != gt_cols):
     print("ERROR: matrices dont have same dimensions")
     return [0,0,0]
@@ -42,27 +40,4 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
 
   # Calculate score:
   score = 2 * ((precision*recall)/(precision+recall))
-  bar_len = 30
-  tp_bar = "█" * int(precision * bar_len)
-  rc_bar = "█" * int(recall * bar_len)
-  f1_bar = "█" * int(score * bar_len)
-  '''
-  print(f"""
-  ╔═══════════════════════════════════════════════════════╗
-  ║            🔍 EDGE DETECTION RESULTS                  ║
-  ╠═══════════════════════════════════════════════════════╣
-  ║                                                       ║
-  ║  ✅ True Positives:   {tp:>8}                         ║
-  ║  ❌ False Positives:  {fp:>8}                         ║
-  ║  ⬛ False Negatives:  {fn:>8}                         ║
-  ║                                                       ║
-  ╠═══════════════════════════════════════════════════════╣
-  ║                                                       ║
-  ║  Precision: {precision:>6.2%}  [{tp_bar:<{bar_len}}]  ║
-  ║  Recall:    {recall:>6.2%}  [{rc_bar:<{bar_len}}]     ║
-  ║  F1 Score:  {score:>6.2%}  [{f1_bar:<{bar_len}}]      ║
-  ║                                                       ║
-  ╚═══════════════════════════════════════════════════════╝
-  """)
-  '''
   return [precision, recall, score]
