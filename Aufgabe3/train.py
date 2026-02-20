@@ -32,9 +32,9 @@ import csv
 from unet import UNet
 from bsds_dataset import BSDSDataset
 
-LEARNING_RATE = 3e-5
-BATCH_SIZE = 8
-EPOCHS = 32
+LEARNING_RATE = 3e-4
+BATCH_SIZE = 4
+EPOCHS = 12
 
 # Get relevant paths
 base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data")

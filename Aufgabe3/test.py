@@ -13,7 +13,7 @@ import csv
 from bsds_dataset import BSDSDataset
 
 if __name__ == "__main__":
-  BATCH_SIZE = 8
+  BATCH_SIZE = 4
   # Get relevant paths
   base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data")
   test_images = os.path.join(base_path, "images", "test")
@@ -22,7 +22,7 @@ if __name__ == "__main__":
   device = "cuda" if torch.cuda.is_available() else "cpu"
 
   test_dataset = BSDSDataset(test_images, test_gt)
-  test_dataloader = DataLoader(dataset=test_dataset, batch_size=8, shuffle=True)
+  test_dataloader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=True)
 
   model = UNet(in_channels=3, num_classes=1).to(device)
   model.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), "unet.pth")))

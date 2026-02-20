@@ -3,7 +3,8 @@ venv/
 BSDS500/
 __pycache__/
 *.jpg
-
+*.png
+*.pth
 
 help/
 media

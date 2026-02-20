@@ -12,7 +12,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 class BSDSDataset(Dataset):
-    def __init__(self, image_dir, gt_dir, size=(256, 256)):
+    def __init__(self, image_dir, gt_dir, size=(512, 512)):
         self.image_paths = sorted(glob.glob(os.path.join(image_dir, '*')))
         self.gt_paths = sorted(glob.glob(os.path.join(gt_dir, '*.mat')))
         self.size = size
