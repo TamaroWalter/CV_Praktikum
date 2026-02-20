@@ -3,65 +3,46 @@ Klasse, die den Datensatz speichert. Speichert Trainings-, Test- und Valierungsb
 Speichert pro Bild 1 mal das Bild und 1 mal den Ground truth des bildes (der erste, der da ist)
 """
 
-import cv2
-import numpy as np
+import os
 import glob
-import sys
-import os
+import numpy as np
 import scipy.io
-import csv
-import os
 from PIL import Image
-from torch.utils.data.dataset import Dataset
+from torch.utils.data import Dataset
 from torchvision import transforms
 
+class BSDSDataset(Dataset):
+    def __init__(self, image_dir, gt_dir, size=(256, 256)):
+        self.image_paths = sorted(glob.glob(os.path.join(image_dir, '*')))
+        self.gt_paths = sorted(glob.glob(os.path.join(gt_dir, '*.mat')))
+        self.size = size
+        self.transform_img = transforms.Compose([
+            transforms.Resize(size, interpolation=Image.BILINEAR),
+            transforms.ToTensor()])
+        self.transform_mask = transforms.Compose([
+            transforms.Resize(size, interpolation=Image.NEAREST),  # or NEAREST for binary
+            transforms.ToTensor()
+        ])
 
-class Dataset():
+    def __len__(self):
+        return len(self.image_paths)
 
-  def __init__(self):
-    # Declare the paths
-    base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data")
-    self.test_images = []
-    self.test_gt_images = []
-    self.train_images = []
-    self.train_gt_images = []
-    self.val_images = []
-    self.val_gt_images = []
+    def __getitem__(self, idx):
+        # Load image
+        img = Image.open(self.image_paths[idx]).convert('RGB')
+        img = self.transform_img(img)
 
-    # Get test data
-    self.get_images(os.path.join(base_path, "images", "test"),  os.path.join(base_path, "groundTruth", "test"), "test")
-    # Get train data
-    self.get_images(os.path.join(base_path, "images", "train"),  os.path.join(base_path, "groundTruth", "train"), "train")
-    # Get validate data
-    self.get_images(os.path.join(base_path, "images", "val"),  os.path.join(base_path, "groundTruth", "val"), "alidat")
-    
-  def get_images(self, folder, gt_folder, category):
-    image_paths = sorted(glob.glob(os.path.join(folder, "*.*")))
-    for i, img_path in enumerate(image_paths):
-      img_number = os.path.splitext(os.path.basename(img_path))[0]
-      image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        # Load ground truth .mat file
+        img_name = os.path.splitext(os.path.basename(self.image_paths[idx]))[0]
+        gt_path = os.path.join(os.path.dirname(self.gt_paths[0]), f"{img_name}.mat")
+        mat = scipy.io.loadmat(gt_path)
+        gt_cell = mat['groundTruth'][0]
+        # Average all annotators' boundaries
+        boundaries = [gt[0][0]['Boundaries'] for gt in gt_cell]
+        mean_mask = np.mean(np.stack(boundaries, axis=0), axis=0)
+        # Convert to PIL for resizing
+        mask = Image.fromarray((mean_mask * 255).astype(np.uint8))
+        mask = self.transform_mask(mask)
+        mask = mask.float() / mask.max()  # Normalize to 0-1
 
-      # Get first ground truth from image.
-      gt_path = glob.glob(os.path.join(gt_folder, f"{img_number}.mat"))
-      mat = scipy.io.loadmat(gt_path[0])
-      gt_cell = mat['groundTruth'][0]
-      ground_truth = gt_cell[0]['Boundaries'][0, 0]
-
-      # Resize.
-      image = image.resize((256, 256), Image.BILINEAR)
-      ground_truth = ground_truth.resize((256, 256), Image.NEAREST)
-
-      # Transform to Tensor so the U-net can work with it.
-      image = transforms.ToTensor()(ground_truth)
-      ground_truth = transforms.ToTensor()(ground_truth)
-
-      # Append to result.
-      if category == "test":
-        self.test_images.append(image)
-        self.test_gt_images.append(ground_truth)
-      elif category == "train":
-        self.train_images.append(image)
-        self.train_gt_images.append(ground_truth)
-      elif category == "validate":
-        self.val_images.append(image)
-        self.val_gt_images.append(ground_truth)
+        return img, mask,  os.path.basename(self.image_paths[idx])

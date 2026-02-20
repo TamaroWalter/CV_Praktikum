@@ -1,21 +1,44 @@
-"""
-Main file fuer Aufgabe 3
+import torch
+import numpy as np
+from PIL import Image
+import os
+from unet import UNet
+from bsds_dataset import BSDSDataset
+import torchvision.transforms as T
+from scipy.ndimage import maximum_filter
+import cv2
 
-:author: Tamaro Walter, Simon Schoenhoeffer
-:group: Praktikum Gruppe 14
+def predict_contour(image_path, model_path, output_path, device="cuda"):
+    # Bild laden und transformieren
+    img = Image.open(image_path).convert('RGB')
+    transform = T.Compose([
+        T.Resize((256, 256), interpolation=Image.BILINEAR),
+        T.ToTensor()
+    ])
+    img_tensor = transform(img).unsqueeze(0).to(device)
 
-Was ist die Aufgabe:
-- Es soll eine Kanten/Konturerkennung mithilfe eines U-nets 
+    # Modell laden
+    model = UNet(in_channels=3, num_classes=1).to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
 
-Genauer Wortlaut:
-Trainieren Sie ein U-Net wie in der Vorlesung vorgestellt, das eine Segmentierung der Bilder
-durch Erzeugen einer Kontur-Maske generiert.  ̈Ubernehmen Sie die gegebene Aufteilung des
-Datensatzes in Trainings-, Validierungs- und Testdaten. Werten Sie die Qualit ̈at des U-Net
-sinnvoll anhand der im Datensatz vorhandenen Konturmasken aus.
+    # Vorhersage
+    with torch.no_grad():
+        pred = model(img_tensor)
+        pred = torch.sigmoid(pred)
+        pred_bin = (pred > 0.5).cpu().numpy()[0, 0]  # [1, 1, H, W] -> [H, W]
+        
+    # Kontur als Bild speichern (schwarz/weiß)
+    contour_img = (pred_bin * 255).astype(np.uint8)
+    Image.fromarray(contour_img).save(output_path)
+    print(f"Kontur gespeichert als {output_path}")
 
-Idee der Implementierung:
-- U-net mithilfe von pytorch bauen
-- Bilder aus BSDS500/images/train zu kleineren bildern (256*256) transformieren
-- Trainingsloop schreiben und fehler berechnen.
-- Evaluation schreiben
-"""
+if __name__ == "__main__":
+    # Beispielaufruf
+    image_number = "2018"  # z.B. Bildnummer
+    base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data", "images", "test")
+    image_path = os.path.join(base_path, f"{image_number}.jpg")
+    model_path = os.path.join(os.path.dirname(__file__), "unet.pth")
+    output_path = os.path.join(os.path.dirname(__file__), f"edges_{image_number}.png")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    predict_contour(image_path, model_path, output_path, device)

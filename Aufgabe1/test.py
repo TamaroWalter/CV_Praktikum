@@ -52,7 +52,7 @@ for i, img_path in enumerate(image_paths):
         precision, recall, score = test.compare_results(edges, ground_truth)
         img_precision += precision
         img_recall += recall
-        img_score += score     
+        img_score += score
 
     results.append([image_number, round(img_precision/img_amount, 3), round(img_recall/img_amount, 3), round(img_score/img_amount, 3)])
     print(f"P={precision:.3f} | R={recall:.3f} | F1={score:.3f}")
