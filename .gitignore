@@ -3,3 +3,13 @@ venv/
 BSDS500/
 __pycache__/
 *.jpg
+
+
+help/
+media
+__pycache__
+.DS_Store
+models
+notes.txt
+storage
+data

@@ -32,6 +32,8 @@ Algorithmus:
 Wie man dann testen könnte:
 1. Schritt: Vom gleichen bild die groundTruth-Matlab datei einlesen und die Matrix mit der eigens berechneten Matrix vergleichen
   1.1 matlab datei einlesen -> check (es sind mehrere versionen desselben bildes vorhanden)
+2. Schritt: Metriken wie Precision/Recall berechnen
+3. Schritt: für jedes Bild aus test-ordner den Test durchführen und in eine csv schreiben -> gesamtprecision/recall berechnen
 '''
 
 # Start timer.
