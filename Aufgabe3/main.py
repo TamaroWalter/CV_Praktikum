@@ -12,7 +12,7 @@ def predict_contour(image_path, model_path, output_path, device="cuda"):
     # Bild laden und transformieren
     img = Image.open(image_path).convert('RGB')
     transform = T.Compose([
-        T.Resize((256, 256), interpolation=Image.BILINEAR),
+        T.Resize((512, 512), interpolation=Image.BILINEAR),
         T.ToTensor()
     ])
     img_tensor = transform(img).unsqueeze(0).to(device)
@@ -35,7 +35,7 @@ def predict_contour(image_path, model_path, output_path, device="cuda"):
 
 if __name__ == "__main__":
     # Beispielaufruf
-    image_number = "2018"  # z.B. Bildnummer
+    image_number = "3063"  # z.B. Bildnummer
     base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data", "images", "test")
     image_path = os.path.join(base_path, f"{image_number}.jpg")
     model_path = os.path.join(os.path.dirname(__file__), "unet.pth")

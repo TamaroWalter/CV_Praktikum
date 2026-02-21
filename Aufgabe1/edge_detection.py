@@ -39,7 +39,7 @@ def sobel(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
   padded = np.pad(matrix, 1, mode='reflect')
   edge_strengths: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
   edge_directions: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
-
+  
   for y in range(1, rows + 1):
     for x in range(1, cols + 1):
       neighbourhood: np.ndarray = np.array([

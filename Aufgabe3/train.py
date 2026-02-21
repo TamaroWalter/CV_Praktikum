@@ -32,6 +32,14 @@ import csv
 from unet import UNet
 from bsds_dataset import BSDSDataset
 
+def combined_loss(pred, target, pos_weight):
+    bce = nn.BCEWithLogitsLoss(pos_weight=pos_weight)(pred, target)
+    pred_sig = torch.sigmoid(pred)
+    smooth = 1e-6
+    intersection = (pred_sig * target).sum()
+    dice = 1 - (2 * intersection + smooth) / (pred_sig.sum() + target.sum() + smooth)
+    return bce + dice
+
 LEARNING_RATE = 3e-4
 BATCH_SIZE = 4
 EPOCHS = 12
@@ -70,8 +78,7 @@ for _, mask, img_number in train_dataset:
 if edge_pixels == 0:
     pos_weight = torch.tensor([1.0], device=device)
 else:
-    pos_weight = torch.tensor([non_edge_pixels / edge_pixels], device=device)
-criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight) 
+    pos_weight = torch.tensor([non_edge_pixels / edge_pixels], device=device) 
 
 model = UNet(in_channels=3, num_classes=1).to(device)
 optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
@@ -86,8 +93,7 @@ for epoch in tqdm(range(EPOCHS)):
 
         y_pred = model(img)
         optimizer.zero_grad()
-
-        loss = criterion(y_pred, mask)
+        loss = combined_loss(y_pred, mask, pos_weight)
         train_running_loss += loss.item()
         
         loss.backward()
@@ -103,7 +109,7 @@ for epoch in tqdm(range(EPOCHS)):
             mask = img_mask[1].float().to(device)
             
             y_pred = model(img)
-            loss = criterion(y_pred, mask)
+            loss = combined_loss(y_pred, mask, pos_weight)
 
             val_running_loss += loss.item()
 

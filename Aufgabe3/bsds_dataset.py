@@ -37,12 +37,16 @@ class BSDSDataset(Dataset):
         gt_path = os.path.join(os.path.dirname(self.gt_paths[0]), f"{img_name}.mat")
         mat = scipy.io.loadmat(gt_path)
         gt_cell = mat['groundTruth'][0]
-        # Average all annotators' boundaries
-        boundaries = [gt[0][0]['Boundaries'] for gt in gt_cell]
-        mean_mask = np.mean(np.stack(boundaries, axis=0), axis=0)
+        
+        mean_mask = None
+        for gt in gt_cell:
+            temp = gt["Boundaries"][0, 0]
+            temp = (temp > 0).astype(np.uint8)  # Binary mask
+            mean_mask = temp if mean_mask is None else np.maximum(mean_mask, temp)
+        
         # Convert to PIL for resizing
         mask = Image.fromarray((mean_mask * 255).astype(np.uint8))
         mask = self.transform_mask(mask)
-        mask = mask.float() / mask.max()  # Normalize to 0-1
+        mask = mask.float().clamp(0, 1)
 
-        return img, mask,  os.path.basename(self.image_paths[idx])
+        return img, mask, os.path.basename(self.image_paths[idx])

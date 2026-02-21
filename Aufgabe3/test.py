@@ -11,6 +11,7 @@ from tqdm import tqdm
 from unet import UNet
 import csv
 from bsds_dataset import BSDSDataset
+from skimage.morphology import skeletonize
 
 if __name__ == "__main__":
   BATCH_SIZE = 4
@@ -38,7 +39,10 @@ if __name__ == "__main__":
       mask = mask.float().to(device)
       y_pred = model(img)
       y_pred = torch.sigmoid(y_pred)
-      y_pred_bin = (y_pred > 0.5).cpu().numpy()
+      y_pred_np = (y_pred > 0.5).cpu().numpy()
+      y_pred_bin = np.zeros_like(y_pred_np)
+      for i in range(y_pred_np.shape[0]):
+          y_pred_bin[i, 0] = skeletonize(y_pred_np[i, 0]).astype(np.uint8)
       mask_bin = (mask > 0.5).cpu().numpy()
 
       for i in range(y_pred_bin.shape[0]):
