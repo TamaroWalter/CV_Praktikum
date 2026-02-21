@@ -42,12 +42,10 @@ def combined_loss(pred, target, pos_weight):
 
 LEARNING_RATE = 3e-4
 BATCH_SIZE = 4
-EPOCHS = 12
+EPOCHS = 25
 
 # Get relevant paths
 base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data")
-test_images = os.path.join(base_path, "images", "test")
-test_gt = os.path.join(base_path, "groundTruth", "test")
 train_images = os.path.join(base_path, "images", "train")
 train_gt = os.path.join(base_path, "groundTruth", "train")
 val_images = os.path.join(base_path, "images", "val")
@@ -55,11 +53,11 @@ val_gt = os.path.join(base_path, "groundTruth", "val")
 
 # Result path
 MODEL_SAVE_PATH = os.path.join(os.path.dirname(__file__), "unet.pth")
+BEST_MODEL_SAVE_PATH = os.path.join(os.path.dirname(__file__), "bestunet.pth")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 train_dataset = BSDSDataset(train_images, train_gt)
-test_dataset = BSDSDataset(test_images, test_gt)
 val_dataset = BSDSDataset(val_images, val_gt)
 
 generator = torch.Generator().manual_seed(42)
@@ -82,8 +80,8 @@ else:
 
 model = UNet(in_channels=3, num_classes=1).to(device)
 optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+best_val_loss = float('inf')
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
-
 results = [] # result of losses for each epoch
 for epoch in tqdm(range(EPOCHS)):
     model.train()
@@ -116,8 +114,14 @@ for epoch in tqdm(range(EPOCHS)):
 
         val_loss = val_running_loss / (idx + 1)
 
-    results.append([epoch+1, train_loss, val_loss])
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), BEST_MODEL_SAVE_PATH)
+        print(f"  → Bestes Modell gespeichert (val_loss={val_loss:.4f})")
+
+    # Am Ende jeder Epoche in der Trainingsschleife:
     scheduler.step()
+    results.append([epoch+1, train_loss, val_loss])
     print("-"*30)
     print(f"Train Loss EPOCH {epoch+1}: {train_loss:.4f}")
     print(f"Valid Loss EPOCH {epoch+1}: {val_loss:.4f}")
