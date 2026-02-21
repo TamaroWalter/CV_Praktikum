@@ -35,7 +35,7 @@ def predict_contour(image_path, model_path, output_path, device="cuda"):
 
 if __name__ == "__main__":
     # Beispielaufruf
-    image_number = "3063"  # z.B. Bildnummer
+    image_number = "64061"  # z.B. Bildnummer 2018, 3063, 29030, 6046, 64061
     base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data", "images", "test")
     image_path = os.path.join(base_path, f"{image_number}.jpg")
     model_path = os.path.join(os.path.dirname(__file__), "unet.pth")

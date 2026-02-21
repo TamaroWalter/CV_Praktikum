@@ -82,6 +82,7 @@ else:
 
 model = UNet(in_channels=3, num_classes=1).to(device)
 optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
 
 results = [] # result of losses for each epoch
 for epoch in tqdm(range(EPOCHS)):
@@ -116,6 +117,7 @@ for epoch in tqdm(range(EPOCHS)):
         val_loss = val_running_loss / (idx + 1)
 
     results.append([epoch+1, train_loss, val_loss])
+    scheduler.step()
     print("-"*30)
     print(f"Train Loss EPOCH {epoch+1}: {train_loss:.4f}")
     print(f"Valid Loss EPOCH {epoch+1}: {val_loss:.4f}")
