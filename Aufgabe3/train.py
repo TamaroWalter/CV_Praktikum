@@ -57,8 +57,8 @@ BEST_MODEL_SAVE_PATH = os.path.join(os.path.dirname(__file__), "bestunet.pth")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-train_dataset = BSDSDataset(train_images, train_gt)
-val_dataset = BSDSDataset(val_images, val_gt)
+train_dataset = BSDSDataset(train_images, train_gt, augment=True)
+val_dataset   = BSDSDataset(val_images, val_gt, augment=False)
 
 generator = torch.Generator().manual_seed(42)
 
