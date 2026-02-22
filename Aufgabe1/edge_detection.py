@@ -91,8 +91,8 @@ Implements hysteresis threshold operation algorithm from VL4, F.25
 """
 def hysteresis_threshold_operation(strengths: np.ndarray) -> np.ndarray:
   # Define the 2 thresholds.
-  th: int = np.percentile(strengths, 91)
-  tl: int = np.percentile(strengths, 88)
+  th: int = np.percentile(strengths, 92)
+  tl: int = np.percentile(strengths, 91)
   rows, cols = strengths.shape
   # Step 1: Initialize k(r,c) = 0
   k = np.zeros((rows, cols), dtype=np.uint8)
