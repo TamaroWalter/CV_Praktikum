@@ -39,7 +39,7 @@ def sobel(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
   padded = np.pad(matrix, 1, mode='reflect')
   edge_strengths: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
   edge_directions: np.ndarray = np.zeros((rows, cols), dtype=np.uint8)
-
+  
   for y in range(1, rows + 1):
     for x in range(1, cols + 1):
       neighbourhood: np.ndarray = np.array([
@@ -91,8 +91,8 @@ Implements hysteresis threshold operation algorithm from VL4, F.25
 """
 def hysteresis_threshold_operation(strengths: np.ndarray) -> np.ndarray:
   # Define the 2 thresholds.
-  th: int = np.percentile(strengths, 91)
-  tl: int = np.percentile(strengths, 88)
+  th: int = np.percentile(strengths, 92)
+  tl: int = np.percentile(strengths, 91)
   rows, cols = strengths.shape
   # Step 1: Initialize k(r,c) = 0
   k = np.zeros((rows, cols), dtype=np.uint8)

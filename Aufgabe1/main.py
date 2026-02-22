@@ -39,52 +39,39 @@ Wie man dann testen könnte:
 # Start timer.
 start = time.time()
 
-# Get image number from user input:
-if len(sys.argv) < 2:
-  print("Usage: python main.py <image_number>")
-  sys.exit(1)
+for image_number in ["2018", "3063", "29030", "6046", "64061", "196027", "14092"]:
+  # Get the image from BSDS500 repo and turn it into a gray value matrix
+  base_path = os.path.join(os.path.dirname(__file__), "..")
+  path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/images/**", f"{image_number}.*"), recursive=True)
+  if len(path) == 0:
+    print(f"No image found with number {image_number}")
+    sys.exit(1)
 
-image_number = sys.argv[1]
+  print(f"Processing image: {path[0]}")
+  gray_value_matrix: np.ndarray = cv2.imread(path[0], cv2.IMREAD_GRAYSCALE)
 
-# Get the image from BSDS500 repo and turn it into a gray value matrix
-base_path = os.path.join(os.path.dirname(__file__), "..")
-path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/images/**", f"{image_number}.*"), recursive=True)
-if len(path) == 0:
-  print(f"No image found with number {image_number}")
-  sys.exit(1)
+  # Compute Canny edge detection.
+  edges = ed.calculate_edges(gray_value_matrix)
 
-print(f"Processing image: {path[0]}")
-gray_value_matrix: np.ndarray = cv2.imread(path[0], cv2.IMREAD_GRAYSCALE)
+  # Output edge file.
+  output = np.where(edges == 1, 0, 255).astype(np.uint8)
+  cv2.imwrite(f"edges_{image_number}.jpg", output)
 
-# Compute Canny edge detection.
-edges = ed.calculate_edges(gray_value_matrix)
-
-# Output edge file.
-output = np.where(edges == 1, 0, 255).astype(np.uint8)
-cv2.imwrite(f"edges_{image_number}.jpg", output)
-
-# TESTING against ground truth
-# Load ground truth .mat file
-gt_start = time.time()
-gt_path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/groundTruth/**", f"{image_number}.mat"), recursive=True)
-ground_truth = np.zeros((0, 0), dtype=np.uint8)
-if len(gt_path) == 0:
-  print(f"No ground truth found for {image_number}")
-else:
+  # TESTING against ground truth
+  # Load ground truth .mat file
+  gt_start = time.time()
+  gt_path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/groundTruth/**", f"{image_number}.mat"), recursive=True)
+  ground_truth = np.zeros((0, 0), dtype=np.uint8)
+  if len(gt_path) == 0:
+    print(f"No ground truth found for {image_number}")
+    continue
   mat = scipy.io.loadmat(gt_path[0])
-  # groundTruth is a 1xN array, each entry contains Boundaries and Segmentation
-  # Multiple annotators, so there are multiple ground truths
   gt_cell = mat['groundTruth'][0]
-  ground_truth = gt_cell[0]['Boundaries'][0, 0]
-  '''
+  mean_ground_truth = None
   for i, gt in enumerate(gt_cell):
     boundaries = gt['Boundaries'][0, 0]  # binary matrix (0 and 1)
-    ground_truth = boundaries
-    gt_output = np.where(boundaries == 1, 0, 255).astype(np.uint8)
-    cv2.imwrite(f"gt_{image_number}_{i}.jpg", gt_output)
-  '''
-cv2.imwrite(f"original_{image_number}.jpg", cv2.imread(path[0]))
+    boundaries = (boundaries > 0).astype(np.uint8)  # Ensure binary
+    mean_ground_truth = boundaries if mean_ground_truth is None else np.maximum(mean_ground_truth, boundaries)
+  gt_output = np.where(mean_ground_truth == 1, 0, 255).astype(np.uint8)
+  cv2.imwrite(f"gt_{image_number}.jpg", gt_output)
 print(f"Processing took {(time.time() - start):.2f} seconds")
-print("----")
-print("---")
-test.compare_results(edges, ground_truth)

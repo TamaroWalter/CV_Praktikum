@@ -18,8 +18,6 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
   if (gt_rows != e_rows or e_cols != gt_cols):
     print("ERROR: matrices dont have same dimensions")
     return [0,0,0]
-  percent_gt = np.sum(ground_truth) / (gt_rows*gt_cols)
-  percent_edges = np.sum(edges) / (e_rows*e_cols)
   tp = 0
   fn = 0
   fp = 0
@@ -38,6 +36,10 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
   # Calculate recall ("Of all the real edges, how many did I actually find?")
   recall = tp / (tp+fn)
 
-  # Calculate score:
+  # Calculate Accuracy ("Of all the pixels, how many did I classify correctly?")
+  accuracy  = (tp) / (tp + fp + fn)
+  
+  # Calculate f1-score:
   score = 2 * ((precision*recall)/(precision+recall))
-  return [precision, recall, score]
+
+  return [precision, recall, accuracy, score]
