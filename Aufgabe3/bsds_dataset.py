@@ -13,7 +13,7 @@ from torchvision import transforms
 import torchvision.transforms.functional as TF
 
 class BSDSDataset(Dataset):
-    def __init__(self, image_dir, gt_dir, size=(512, 512), augment=False):
+    def __init__(self, image_dir, gt_dir, size=(256, 256), augment=False):
         self.image_paths = sorted(glob.glob(os.path.join(image_dir, '*')))
         self.gt_paths = sorted(glob.glob(os.path.join(gt_dir, '*.mat')))
         self.size = size
@@ -31,20 +31,16 @@ class BSDSDataset(Dataset):
         return len(self.image_paths)
 
     def _augment(self, img, mask):
-        # Horizontale Spiegelung
+        # Horizontale Spiegelung ist realistisch (Spiegelbild einer Szene)
         if random.random() > 0.5:
             img = TF.hflip(img)
             mask = TF.hflip(mask)
-        # Vertikale Spiegelung
-        if random.random() > 0.5:
-            img = TF.vflip(img)
-            mask = TF.vflip(mask)
-        # Rotation in 90°-Schritten (vermeidet Kantenverzerrung durch Interpolation)
-        angle = random.choice([0, 90, 180, 270])
+        # Kleine Rotationen (+/- 10°) statt 90°-Schritte
+        angle = random.uniform(-10, 10)
         img = TF.rotate(img, angle)
         mask = TF.rotate(mask, angle)
-        # Farb- und Helligkeitsveränderung – nur am Bild, nicht an der Maske
-        img = transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2)(img)
+        # Farbveränderungen etwas reduzieren
+        img = transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.1)(img)
         return img, mask
 
     def __getitem__(self, idx):

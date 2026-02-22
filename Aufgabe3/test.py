@@ -26,7 +26,7 @@ if __name__ == "__main__":
   test_dataloader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=True)
 
   model = UNet(in_channels=3, num_classes=1).to(device)
-  model.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), "bestunet.pth")))
+  model.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), "unet.pth")))
 
   model.eval()
   precisions = []

@@ -42,7 +42,7 @@ def combined_loss(pred, target, pos_weight):
 
 LEARNING_RATE = 3e-4
 BATCH_SIZE = 4
-EPOCHS = 25
+EPOCHS = 50
 
 # Get relevant paths
 base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data")
@@ -59,7 +59,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 train_dataset = BSDSDataset(train_images, train_gt, augment=True)
 val_dataset   = BSDSDataset(val_images, val_gt, augment=False)
-
+ref_dataset = BSDSDataset(train_images, train_gt, augment=False)
 generator = torch.Generator().manual_seed(42)
 
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -68,7 +68,7 @@ val_dataloader = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE, shuffle=
 # Calculate pos_weight for BCEWithLogitsLoss
 edge_pixels = 0
 non_edge_pixels = 0
-for _, mask, img_number in train_dataset:
+for _, mask, img_number in ref_dataset:
     mask = (mask > 0.5).float()
     edge_pixels += mask.sum().item()
     non_edge_pixels += (mask.numel() - mask.sum().item())
