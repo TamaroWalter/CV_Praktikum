@@ -36,7 +36,7 @@ if __name__ == "__main__":
       mask = mask.float().to(device)
       y_pred = model(img)
       y_pred = torch.sigmoid(y_pred)
-      y_pred_np = (y_pred > 0.5).cpu().numpy()
+      y_pred_np = (y_pred > 0.5).cpu().numpy() # Threshold
       y_pred_bin = np.zeros_like(y_pred_np)
       for i in range(y_pred_np.shape[0]):
           y_pred_bin[i, 0] = skeletonize(y_pred_np[i, 0]).astype(np.uint8)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     avg_f1 = round(np.mean([r[4] for r in results]), 3)
     results.append(["total", avg_p, avg_r, avg_ac, avg_f1])
   # Write CSV
-  output_file = os.path.join(os.path.dirname(__file__), "last_evaluation_results.csv")
+  output_file = os.path.join(os.path.dirname(__file__), "alternate_evaluation_results.csv")
   with open(output_file, "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["image_nr", "precision", "recall", "accuracy" "score"])

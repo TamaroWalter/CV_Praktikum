@@ -12,8 +12,9 @@ import numpy as np
 Wraps all functions below in one easy to use function.
 """
 def calculate_edges(matrix: np.ndarray) -> np.ndarray:
-  filtered_matrix = gaussian_filter(matrix)
-  strengths, directions = sobel(filtered_matrix)
+  #filtered_matrix = gaussian_filter(matrix)
+  #strengths, directions = sobel(filtered_matrix)
+  strengths, directions = sobel(matrix)
   max_strengths = non_maximum_suppression(strengths, directions)
   return hysteresis_threshold_operation(max_strengths)
 

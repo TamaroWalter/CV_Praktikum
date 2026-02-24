@@ -19,12 +19,15 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
     print("ERROR: matrices dont have same dimensions")
     return [0,0,0]
   tp = 0
+  tn = 0
   fn = 0
   fp = 0
   for y in range(0, e_rows):
     for x in range(0, e_cols):
-      if (ground_truth[y, x] == edges[y, x]):
+      if (ground_truth[y, x] == 1 and edges[y, x] == 1):
         tp += 1          
+      if (ground_truth[y, x] == 0 and edges[y, x] == 0):
+        tn += 1
       if (ground_truth[y, x] == 1 and edges[y, x] == 0):
         fn += 1
       if (ground_truth[y, x] == 0 and edges[y, x] == 1):
@@ -37,7 +40,7 @@ def compare_results(edges: np.ndarray, ground_truth: np.ndarray):
   recall = tp / (tp+fn)
 
   # Calculate Accuracy ("Of all the pixels, how many did I classify correctly?")
-  accuracy  = (tp) / (tp + fp + fn)
+  accuracy  = (tp+tn) / (tp +tn+ fp + fn)
   
   # Calculate f1-score:
   score = 2 * ((precision*recall)/(precision+recall))

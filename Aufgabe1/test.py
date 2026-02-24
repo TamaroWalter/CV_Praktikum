@@ -12,11 +12,16 @@ base_path = os.path.join(os.path.dirname(__file__), "..")
 test_folder = os.path.join(base_path, "BSDS500", "BSDS500", "data", "images", "test")
 
 # Find all images in the test folder
-image_paths = sorted(glob.glob(os.path.join(test_folder, "*.*")))
-if len(image_paths) == 0:
-    print(f"No images found in {test_folder}")
-    sys.exit(1)
 
+# Only use the specified images
+image_paths = []
+for image_number in ["8068", "6046", "14092", "29030", "64061", "42044"]:
+  image_paths.append(os.path.join(test_folder, f"{image_number}.jpg"))
+if len(image_paths) == 0:
+  print(f"No images found in {test_folder}")
+  sys.exit(1)
+
+image_paths = sorted(glob.glob(os.path.join(test_folder, "*.*")))
 print(f"Found {len(image_paths)} images in test folder.\n")
 results = []
 
@@ -53,7 +58,7 @@ avg_score = round(np.mean([r[4] for r in results]), 3)
 results.append(["total", avg_precision, avg_recall, avg_accuracy, avg_score])
 
 # Write CSV
-with open(os.path.join(os.path.dirname(__file__), "Ergebnisse", "evaluation_results.csv"), "w", newline="") as f:
+with open(os.path.join(os.path.dirname(__file__), "Ergebnisse", "END_alt_evaluation_results.csv"), "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["image_nr", "precision", "recall", "accuracy", "score"])
     writer.writerows(results)

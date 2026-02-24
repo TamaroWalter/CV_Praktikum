@@ -28,18 +28,20 @@ def predict_contour(image_path, model_path, output_path, device="cuda"):
         pred = torch.sigmoid(pred)
         pred_bin = (pred > 0.5).cpu().numpy()[0, 0]  # [1, 1, H, W] -> [H, W]
         
-    # Kontur als Bild speichern (schwarz/weiß)
+    # Kontur als Bild speichern (schwarz/weiß, invertiert)
     contour_img = (pred_bin * 255).astype(np.uint8)
+    # Negierung: Schwarz und Weiß tauschen
+    contour_img = 255 - contour_img
     Image.fromarray(contour_img).save(output_path)
     print(f"Kontur gespeichert als {output_path}")
 
 if __name__ == "__main__":
     # Beispielaufruf
     #image_number = "64061"  # z.B. Bildnummer 2018, 3063, 29030, 6046, 64061
-    for image_number in ["2018", "3063", "29030", "6046", "64061", "196027", "14092"]:
+    for image_number in ["8068", "6046", "14092", "29030", "64061", "335094"]:
         base_path = os.path.join(os.path.dirname(__file__), "..", "BSDS500", "BSDS500", "data", "images", "test")
         image_path = os.path.join(base_path, f"{image_number}.jpg")
         model_path = os.path.join(os.path.dirname(__file__), "excel_unet.pth")
-        output_path = os.path.join(os.path.dirname(__file__), f"b_edges_{image_number}.png")
+        output_path = os.path.join(os.path.dirname(__file__), f"END_A3_edges_{image_number}.jpg")
         device = "cuda" if torch.cuda.is_available() else "cpu"
         predict_contour(image_path, model_path, output_path, device)

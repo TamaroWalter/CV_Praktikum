@@ -38,8 +38,8 @@ Wie man dann testen könnte:
 
 # Start timer.
 start = time.time()
-
-for image_number in ["2018", "3063", "29030", "6046", "64061", "196027", "14092"]:
+# ["8068", "6046", "14092", "29030", "64061", "42044", "335094"]
+for image_number in ["335094"]:
   # Get the image from BSDS500 repo and turn it into a gray value matrix
   base_path = os.path.join(os.path.dirname(__file__), "..")
   path = glob.glob(os.path.join(base_path, "BSDS500/BSDS500/data/images/**", f"{image_number}.*"), recursive=True)
@@ -55,7 +55,7 @@ for image_number in ["2018", "3063", "29030", "6046", "64061", "196027", "14092"
 
   # Output edge file.
   output = np.where(edges == 1, 0, 255).astype(np.uint8)
-  cv2.imwrite(f"edges_{image_number}.jpg", output)
+  cv2.imwrite(f"END_NG_alt_edges_{image_number}.jpg", output)
 
   # TESTING against ground truth
   # Load ground truth .mat file
